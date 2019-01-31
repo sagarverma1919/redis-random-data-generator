@@ -10,8 +10,8 @@ import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.project.data.generator.common.ExecutorUtils;
 import com.project.data.generator.handler.RedisExecutor;
+import com.project.data.generator.common.ExecutorUtils;
 
 public class MultiThreadProcessor
 {
