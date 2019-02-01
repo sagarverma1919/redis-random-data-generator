@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 import com.project.data.generator.common.Constant;
@@ -25,6 +26,9 @@ public class ExecutorService
     @Autowired
     private ServiceUtils serviceUtils;
 
+    @Autowired
+    private ConfigurableApplicationContext configurableApplicationContext;
+
 
     public void process() throws Exception
     {
@@ -35,5 +39,7 @@ public class ExecutorService
         multiThreadProcessor.executeInBatches();
 
         LOG.info(Constant.EXECUTION_COMPLETED);
+
+        configurableApplicationContext.close();
     }
 }

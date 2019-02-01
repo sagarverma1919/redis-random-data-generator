@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.project.data.generator.common.Operations;
+import com.project.data.generator.handler.HashMapOperationExecutor;
+import com.project.data.generator.handler.ListOperationExecutor;
 import com.project.data.generator.handler.RedisExecutor;
 import com.project.data.generator.handler.StringOperationExecutor;
 
@@ -13,6 +15,12 @@ public class ServiceUtils
     @Autowired
     private StringOperationExecutor stringOperationExecutor;
 
+    @Autowired
+    private ListOperationExecutor listOperationExecutor;
+
+    @Autowired
+    private HashMapOperationExecutor hashMapOperationExecutor;
+
     public RedisExecutor getExecutor(String operation) throws Exception
     {
 
@@ -20,6 +28,10 @@ public class ServiceUtils
         {
             case String:
                 return stringOperationExecutor;
+            case List:
+                return listOperationExecutor;
+            case HashMap:
+                return hashMapOperationExecutor;
         }
 
         return null;
