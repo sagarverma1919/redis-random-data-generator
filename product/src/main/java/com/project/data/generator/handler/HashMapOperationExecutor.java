@@ -1,5 +1,7 @@
 package com.project.data.generator.handler;
 
+import java.util.List;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +14,9 @@ import com.project.data.generator.common.Constant;
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 
 @Component
-public class StringOperationExecutor implements RedisExecutor
+public class HashMapOperationExecutor implements RedisExecutor
 {
-    private static final Logger LOG = LoggerFactory.getLogger(StringOperationExecutor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HashMapOperationExecutor.class);
 
     @Autowired
     private RedisAdvancedClusterCommands<String, String> redisCommands;
@@ -22,7 +24,7 @@ public class StringOperationExecutor implements RedisExecutor
     @Value("${com.project.data.generator.number.of.threads:10}")
     private int numOfThreads;
 
-    @Value("${com.project.data.generator.number.of.entries:100}")
+    @Value("${com.project.data.generator.number.of.entries:10}")
     private int entries;
 
     @Value("${com.project.data.generator.string.key.length:20}")
@@ -31,22 +33,29 @@ public class StringOperationExecutor implements RedisExecutor
     @Value("${com.project.data.generator.string.value.length:13}")
     private int valueLength;
 
+    @Value("#{${com.project.data.generator.hashMap.keys.list:'firstSeen,secondSeen'}.split(',')}")
+    private List<String> hashMapKeysList;
+
+
     @Override
     public String execute()
     {
-
         int iterations = entries / numOfThreads;
+
         LOG.info(String.format("%s %d", Constant.ITERATION_SIZE, iterations));
 
         for (int i = 0; i < iterations; i++)
         {
             String key = RandomStringUtils.random(keyLength, true, false);
-            String value = RandomStringUtils.random(valueLength, true, false);
 
             try
             {
-                String status = redisCommands.set(key, value);
-                LOG.info(String.format("%s %s", Constant.STATUS, status));
+                for (int j = 0; j < hashMapKeysList.size(); j++)
+                {
+                    String value = RandomStringUtils.random(valueLength, true, false);
+                    Boolean status = redisCommands.hset(key, hashMapKeysList.get(j), value);
+                    LOG.info(String.format("%s %s", Constant.STATUS, status ? Constant.OK : Constant.FAIL));
+                }
             }
             catch (Exception e)
             {
@@ -56,6 +65,5 @@ public class StringOperationExecutor implements RedisExecutor
         }
 
         return Constant.EXECUTION_COMPLETED;
-
     }
 }
