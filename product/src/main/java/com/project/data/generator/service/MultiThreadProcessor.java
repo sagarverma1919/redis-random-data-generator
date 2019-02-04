@@ -53,7 +53,7 @@ public class MultiThreadProcessor
 
         for (int i = 0; i < numOfThreads; i++)
         {
-            messageBatch.add(() -> redisExecutor.execute());
+            messageBatch.add(redisExecutor::execute);
 
         }
         return messageBatch;

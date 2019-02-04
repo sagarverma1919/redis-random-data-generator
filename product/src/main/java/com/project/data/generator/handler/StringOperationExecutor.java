@@ -1,6 +1,7 @@
 package com.project.data.generator.handler;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class StringOperationExecutor implements RedisExecutor
     @Value("${com.project.data.generator.string.value.length:13}")
     private int valueLength;
 
+    @Value("${com.project.data.generator.key.prefix:''}")
+    private String keyPrefix;
+
     @Override
     public String execute()
     {
@@ -38,9 +42,16 @@ public class StringOperationExecutor implements RedisExecutor
         int iterations = entries / numOfThreads;
         LOG.info(String.format("%s %d", Constant.ITERATION_SIZE, iterations));
 
+        int length = keyLength;
+        if (!StringUtils.isBlank(keyPrefix))
+        {
+            length = keyLength - keyPrefix.length();
+
+        }
+
         for (int i = 0; i < iterations; i++)
         {
-            String key = RandomStringUtils.random(keyLength, true, false);
+            String key = keyPrefix.concat(RandomStringUtils.random(length, true, false));
             String value = RandomStringUtils.random(valueLength, true, false);
 
             try

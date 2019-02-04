@@ -36,10 +36,19 @@ public class ExecutorService
 
         MultiThreadProcessor multiThreadProcessor = new MultiThreadProcessor(executorService, operation, numOfThreads);
 
-        multiThreadProcessor.executeInBatches();
-
-        LOG.info(Constant.EXECUTION_COMPLETED);
-
-        configurableApplicationContext.close();
+        try
+        {
+            multiThreadProcessor.executeInBatches();
+            LOG.info(String.format("%s %s", Constant.EXECUTION_COMPLETED, Constant.OK));
+        }
+        catch (Exception e)
+        {
+            LOG.error(e.getMessage());
+            LOG.info(String.format("%s %s", Constant.EXECUTION_COMPLETED, Constant.FAIL));
+        }
+        finally
+        {
+            configurableApplicationContext.close();
+        }
     }
 }
