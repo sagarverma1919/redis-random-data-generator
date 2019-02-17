@@ -34,7 +34,7 @@ public class HashMapOperationExecutor implements RedisExecutor
     @Value("${com.project.data.generator.string.value.length:13}")
     private int valueLength;
 
-    @Value("#{${com.project.data.generator.hashMap.keys.list:'firstSeen,secondSeen'}.split(',')}")
+    @Value("${com.project.data.generator.hashMap.keys.list:firstSeen,secondSeen}")
     private List<String> hashMapKeysList;
 
     @Value("${com.project.data.generator.key.prefix:''}")
