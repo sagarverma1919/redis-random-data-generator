@@ -7,7 +7,8 @@ public enum Operations
 {
     String("string"),
     List("list"),
-    HashMap("hashMap");
+    HashMap("hashMap"),
+    Delete("delete");
 
 
     private static final Logger LOG = LoggerFactory.getLogger(Operations.class);
