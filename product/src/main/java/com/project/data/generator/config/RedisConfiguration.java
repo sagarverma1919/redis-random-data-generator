@@ -14,6 +14,7 @@ import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.async.RedisAdvancedClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 
 @Configuration
@@ -63,8 +64,32 @@ public class RedisConfiguration
         syncCommands = connection.sync();
         syncCommands.setTimeout(Duration.ofMillis(redisSocketTimeout));
         return syncCommands;
+    }
 
+    @Bean
+    public RedisAdvancedClusterAsyncCommands<String, String> asyncCommands()
+    {
+        List<RedisURI> redisURIS = redisURIS();
+        RedisClusterClient clusterClient = RedisClusterClient.create(redisURIS);
+        clusterClient.setOptions(ClusterClientOptions.builder().maxRedirects(maxRedirects).build());
+        ClusterTopologyRefreshOptions topologyRefreshOptions = ClusterTopologyRefreshOptions.builder()
+                .enablePeriodicRefresh(Duration.ofSeconds(redisClusterTopologyRefreshPeriod))
+                .enableAllAdaptiveRefreshTriggers()
+                .build();
 
+        clusterClient.setOptions(ClusterClientOptions.builder()
+                                         .topologyRefreshOptions(topologyRefreshOptions)
+                                         .build());
+
+        RedisAdvancedClusterAsyncCommands<String, String> asyncCommands = null;
+        StatefulRedisClusterConnection<String, String> connection = clusterClient.connect();
+        if (slaveRead)
+        {
+            connection.setReadFrom(ReadFrom.SLAVE);
+        }
+        asyncCommands = connection.async();
+        asyncCommands.setTimeout(Duration.ofMillis(redisSocketTimeout));
+        return asyncCommands;
     }
 
     private List<RedisURI> redisURIS()

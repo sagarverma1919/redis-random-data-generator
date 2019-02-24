@@ -9,9 +9,10 @@ import org.springframework.stereotype.Component;
 import com.project.data.generator.common.Constant;
 
 import io.lettuce.core.KeyScanCursor;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanCursor;
-import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+import io.lettuce.core.cluster.api.async.RedisAdvancedClusterAsyncCommands;
 
 @Component
 public class DeleteKeyOperationExecutor implements RedisExecutor
@@ -19,7 +20,7 @@ public class DeleteKeyOperationExecutor implements RedisExecutor
     private static final Logger LOG = LoggerFactory.getLogger(DeleteKeyOperationExecutor.class);
 
     @Autowired
-    private RedisAdvancedClusterCommands<String, String> redisCommands;
+    private RedisAdvancedClusterAsyncCommands<String, String> redisCommands;
 
     @Value("${com.project.data.generator.number.of.threads:10}")
     private int numOfThreads;
@@ -39,22 +40,35 @@ public class DeleteKeyOperationExecutor implements RedisExecutor
         ScanCursor cursor = ScanCursor.INITIAL;
         ScanArgs scanArgs = ScanArgs.Builder.matches(keyPrefix);
 
-        for (int i = 0; i < iterations; i++)
+        for (int i = 0; i < iterations; )
         {
             try
             {
-                KeyScanCursor<String> keyScanCursor = redisCommands.scan(cursor, scanArgs);
+                RedisFuture<KeyScanCursor<String>> future = redisCommands.scan(cursor, scanArgs);
 
+                KeyScanCursor<String> keyScanCursor = future.get();
 
-                Long status = redisCommands.del(keyScanCursor.getKeys().stream().toArray(String[]::new));
-                if (status != keyScanCursor.getKeys().size())
+                cursor = keyScanCursor;
+
+                if (cursor.getCursor().equals("0"))
                 {
-                    cursor = new ScanCursor(keyScanCursor.getCursor(), false);
+                    LOG.info("No matching items found");
+                    break;
                 }
 
-                i = (int) (i + status - 1);
+                if (keyScanCursor.getKeys().size() > 0)
+                {
+                    RedisFuture<Long> status = redisCommands.del(keyScanCursor.getKeys().stream().toArray(String[]::new));
 
-                LOG.info(String.format("%s %d", Constant.STATUS, status));
+                    Long deletedItems = status.get();
+
+                    i = (int) (i + deletedItems);
+
+                    LOG.info(String.format("%s %d", Constant.STATUS, deletedItems));
+                }
+
+
+
             }
             catch (Exception e)
             {
