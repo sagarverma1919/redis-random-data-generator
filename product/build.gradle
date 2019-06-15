@@ -4,10 +4,7 @@ apply plugin: 'io.spring.dependency-management'
 
 buildscript {
     repositories {
-        maven { url 'http://nexuslab.alm/nexus/content/repositories/central/' }
-        maven { url 'http://nexuslab.alm/nexus/content/repositories/public/' }
-        maven { url 'http://nexuslab.alm/nexus/content/repositories/fraud-releases/' }
-
+        mavenCentral()
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:$rev_spring_boot")
